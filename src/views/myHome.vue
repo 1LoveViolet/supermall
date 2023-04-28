@@ -57,9 +57,20 @@ export default {
   created() {
     //1.请求多个数据
     this.getHomeMultidata()
+    //2.请求商品数据
     this.getHomeGoods('pop')
     this.getHomeGoods('new')
     this.getHomeGoods('sell')
+    // //3.监听item中图片加载
+    // this.$bus.$on('itemimageLoad', () => {
+    //   this.$refs.scroll.refresh()
+    // })
+  },
+  mounted() {
+    //3.监听item中图片加载
+    this.$bus.$on('itemimageLoad', () => {
+      this.$refs.scroll.refresh()
+    })
   },
   computed: {
     showGoods() {
@@ -82,8 +93,9 @@ export default {
       }
     },
     contentScroll(position) {
-      this.isshow = (-position.y) < 1400
+      this.isshow = (-position.y) > 1400
     },
+
     //网络请求相关的代码
     getHomeMultidata() {
       getHomeMultidata().then(res => {
