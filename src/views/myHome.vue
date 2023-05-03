@@ -4,12 +4,13 @@
       <div slot="middle">购物车</div>
       <div slot="left">返回</div>
     </NavBar>
+    <TabControl ref="tabControl1" class="tabControl1" :titles="['流行','新款','精选']" @tabClick="tabClick" v-show="isTabFixd"></TabControl>
+    <Scroll class="content" ref="scroll" @scroll="contentScroll" @pullingUp="loadMore">
 
-    <Scroll class="content" ref="scroll" @scroll="contentScroll">
-      <homeSwiper class="homeswiper" :banners="banners"></homeSwiper>
+      <homeSwiper class="homeswiper" :banners="banners" @swiperImageLoad="swiperImageLoad"></homeSwiper>
       <homeRecommendView :recommends="recommends"></homeRecommendView>
       <feature-view :features="recommends"></feature-view>
-      <TabControl class="tab-control" :titles="['流行','新款','精选']" @tabClick="tabClick"></TabControl>
+      <TabControl ref="tabControl2" class="" :titles="['流行','新款','精选']" @tabClick="tabClick"></TabControl>
       <GoodsList :goods="showGoods"></GoodsList>
     </Scroll>
 
@@ -51,8 +52,22 @@ export default {
         'sell': { page: 0, list: [] }
       },
       currentType: 'pop',
-      isshow: true
+      isshow: true,
+      tabOffsetTop: 0,
+      isTabFixd: false,
+      saveY: 0
     }
+  },
+  destroyed() {
+    console.log('home destroyed');
+  },
+  activated() {
+    console.log('activated');
+    this.$refs.scroll.scrollTo(0, this.saveY, 0)
+  },
+  deactivated() {
+    console.log('deactivated');
+    this.saveY = this.$refs.scroll.getScrollY()
   },
   created() {
     //1.请求多个数据
@@ -63,14 +78,18 @@ export default {
     this.getHomeGoods('sell')
     // //3.监听item中图片加载
     // this.$bus.$on('itemimageLoad', () => {
-    //   this.$refs.scroll.refresh()
+    //   this.debounce(this.fn, 200)
     // })
   },
   mounted() {
+    //新方法可以使用observe-image插件来监听图片加载并且自动refresh()
     //3.监听item中图片加载
-    this.$bus.$on('itemimageLoad', () => {
-      this.$refs.scroll.refresh()
-    })
+    // const refresh = this.debounce(this.fn, 200)
+    // this.$bus.$on('itemimageLoad', () => {
+    //   // refresh()
+    //   // this.$refs.scroll.refresh();
+    //   this.$refs.scroll.scroll.refresh()
+    // })
   },
   computed: {
     showGoods() {
@@ -78,6 +97,28 @@ export default {
     }
   },
   methods: {
+    swiperImageLoad() {
+      //
+      this.tabOffsetTop = this.$refs.tabControl2.$el.offsetTop
+      console.log(this.tabOffsetTop);
+    },
+    loadMore() {
+      console.log('下拉加载');
+      this.getHomeGoods(this.currentType)
+    },
+    // fn() {
+    //   this.$refs.scroll.refresh();
+    //   console.log('防抖加载');
+    // },
+    // debounce(fn, delay) {
+    //   let timer = null;
+    //   return function () {
+    //     clearTimeout(timer);
+    //     timer = setTimeout(() => {
+    //       fn();
+    //     }, delay)
+    //   }
+    // },
     //事件监听相关的代码
     tabClick(index) {
       switch (index) {
@@ -91,9 +132,14 @@ export default {
           this.currentType = 'sell'
           break
       }
+      this.$refs.tabControl2.currentIndex = index
+      this.$refs.tabControl1.currentIndex = index
     },
     contentScroll(position) {
+      //判断BackTop是否显示
       this.isshow = (-position.y) > 1400
+      //决定tabControl是否吸顶
+      this.isTabFixd = (-position.y) > this.tabOffsetTop - 44
     },
 
     //网络请求相关的代码
@@ -109,10 +155,12 @@ export default {
       getHomeGoods(type, page).then(res => {
         this.goods[type].list.push(...res.data.list)
         this.goods[type].page++
+
+        this.$refs.scroll.scroll.finishPullUp()
       })
     },
     BackTop() {
-      this.$refs.scroll.scrollTo(0, 0)
+      this.$refs.scroll.scrollTo(0, 0, 500)
     }
 
   }
@@ -134,12 +182,7 @@ export default {
   position: fixed;
   z-index: 9;
 }
-.tab-control {
-  background-color: #ffffff;
-  position: sticky;
-  top: 44px;
-  z-index: 9;
-}
+
 .content {
   position: absolute;
   top: 0px;
@@ -147,5 +190,11 @@ export default {
   left: 0px;
   right: 0px;
   overflow: hidden;
+}
+.tabControl1 {
+  background-color: #ffffff;
+  position: relative;
+  top: 44px;
+  z-index: 9;
 }
 </style>
