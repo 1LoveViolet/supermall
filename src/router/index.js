@@ -5,6 +5,7 @@ const Home = () => import("views/myHome");
 const Cart = () => import("views/Cart");
 const Category = () => import("views/Category");
 const Profile = () => import("views/Profile");
+const Detail = () => import("views/Detail");
 const router = new VueRouter({
   routes: [
     {
@@ -26,6 +27,10 @@ const router = new VueRouter({
     {
       path: "/profile",
       component: Profile,
+    },
+    {
+      path: "/detail/:iid",
+      component: Detail,
     },
   ],
   mode: "history",

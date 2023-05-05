@@ -14,6 +14,8 @@
 import BScroll from '@better-scroll/core'
 import ObserveImage from '@better-scroll/observe-image'
 import Pullup from '@better-scroll/pull-up'
+import ObserveDOM from '@better-scroll/observe-dom'
+BScroll.use(ObserveDOM)
 BScroll.use(Pullup)
 BScroll.use(ObserveImage)
 export default {
@@ -25,19 +27,24 @@ export default {
 
   mounted() {
     //创建scroll对象
-    this.scroll = new BScroll(this.$refs.wrapper, {
-      probeType: 3,
-      click: true,
-      pullUpLoad: true,
-      observeImage: true
+    this.$nextTick(() => {
+      this.scroll = new BScroll(this.$refs.wrapper, {
+        probeType: 3,
+        click: true,
+        pullUpLoad: true,
+        observeImage: true,
+        observeDOM: true
+      })
     })
     //监听滚动的位置
     this.scroll.on('scroll', (position) => {
       this.$emit('scroll', position)
+
     })
     //监听scroll滚动到底部
     this.scroll.on('pullingUp', () => {
       this.$emit('pullingUp')
+
     })
 
   },
